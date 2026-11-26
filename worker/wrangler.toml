@@ -1,4 +1,4 @@
-name = "sugitalk-translate"
+name = "sugitalk-translator"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
 

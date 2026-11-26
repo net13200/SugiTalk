@@ -68,12 +68,12 @@ Then use `https://sugitalk.pages.dev` as the origin in step C.
 2. Deploy it and store the key as a secret. The key is never written to a file:
    ```bash
    cd worker
-   npx wrangler deploy                        # prints https://sugitalk-translate.<you>.workers.dev
+   npx wrangler deploy                        # prints https://sugitalk-translator.<you>.workers.dev
    npx wrangler secret put DEEPL_API_KEY      # paste the key when asked
    ```
 3. Check it:
    ```bash
-   curl -s -X POST https://sugitalk-translate.<you>.workers.dev/translate \
+   curl -s -X POST https://sugitalk-translator.<you>.workers.dev/translate \
      -H 'Origin: https://net13200.github.io' -H 'Content-Type: application/json' \
      -d '{"text":"駅に行ったけど","context":""}'
    # → {"text":"I went to the station, but","ms":180,"provider":"deepl"}
@@ -84,7 +84,7 @@ Then use `https://sugitalk.pages.dev` as the origin in step C.
 On the phone, open ⚙︎ and paste the Worker URL into **Translation endpoint**. You can also open the site once with it in the address:
 
 ```
-https://net13200.github.io/SugiTalk/?endpoint=https://sugitalk-translate.<you>.workers.dev
+https://net13200.github.io/SugiTalk/?endpoint=https://sugitalk-translator.<you>.workers.dev
 ```
 
 The app saves it in localStorage. To make it the default for everyone who opens the site, set `endpoint` in `web/js/config.js` and redeploy.
