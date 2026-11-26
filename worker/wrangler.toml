@@ -1,3 +1,5 @@
+# Deployed by Cloudflare Workers Builds from net13200/SugiTalk (main, root dir: worker).
+# Pushing to main redeploys. Manual alternative: npx wrangler deploy
 name = "sugitalk-translator"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
