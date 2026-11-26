@@ -1,0 +1,15 @@
+name = "sugitalk-translate"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Comma-separated list of site origins allowed to call this Worker.
+# Replace with YOUR site's origin (scheme + host, no trailing slash).
+ALLOWED_ORIGINS = "https://sugitalk.pages.dev,http://localhost:8000"
+PROVIDER = "deepl"          # or "google"
+TARGET_LANG = "EN-US"
+# DEEPL_MODEL_TYPE = "latency_optimized"   # optional, see README
+
+# Secrets (never put them in this file):
+#   npx wrangler secret put DEEPL_API_KEY
+#   npx wrangler secret put GOOGLE_API_KEY   (only if PROVIDER = "google")

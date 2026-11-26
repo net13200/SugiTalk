@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+*.png
+!web/**/*.png
+.dev.vars
