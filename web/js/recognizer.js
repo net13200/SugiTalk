@@ -76,9 +76,14 @@ export class Recognizer {
     let lastError = '';
     this.rec = rec;
 
-    rec.onstart = () => { this.log(`rec#${id} start`); this.onState('listening'); };
+    // Timing of each startup stage, so slow starts can be diagnosed in 🐞.
+    const since = () => Math.round(performance.now() - t0);
+    rec.onstart = () => { this.log(`rec#${id} start +${since()}ms`); this.onState('listening'); };
+    rec.onaudiostart = () => this.log(`rec#${id} audio on +${since()}ms`);
+    rec.onspeechstart = () => this.log(`rec#${id} speech heard +${since()}ms`);
 
     rec.onresult = (e) => {
+      if (!gotResult) this.log(`rec#${id} first result +${since()}ms`);
       gotResult = true;
       this.fails = 0;
       const out = [];

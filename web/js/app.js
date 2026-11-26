@@ -12,7 +12,7 @@ const cfg = loadSettings();
 // ---------------------------------------------------------------- debug log
 const stats = {
   sessions: 0, restarts: 0, commits: 0, translated: 0, errors: 0,
-  lastMs: 0, avgMs: 0, queue: 0, drops: 0, ttsKills: 0, chars: 0,
+  lastMs: 0, avgMs: 0, queue: 0, drops: 0, ttsKills: 0, chars: 0, listening: 0, firstText: 0,
 };
 const logLines = [];
 const t0 = performance.now();
@@ -29,7 +29,7 @@ function renderDebug() {
     sessions: stats.sessions, restarts: stats.restarts, commits: stats.commits,
     'tr ok': stats.translated, 'tr err': stats.errors, 'last ms': stats.lastMs,
     'avg ms': stats.avgMs, 'tts queue': stats.queue, drops: stats.drops,
-    'rec end in tts': stats.ttsKills, 'chars/mo': usage.chars, provider: translator?.name || 'none',
+    'rec end in tts': stats.ttsKills, 'tap→listen ms': stats.listening || '–', 'tap→text ms': stats.firstText || '–', 'chars/mo': usage.chars, provider: translator?.name || 'none',
   }).map(([k, v]) => `<div>${k} <b>${v}</b></div>`).join('');
   $('log').textContent = logLines.slice(-120).reverse().join('\n');
 }
@@ -138,11 +138,18 @@ const speaker = new Speaker({
 
 // ---------------------------------------------------------------- recognition
 let running = false;
+let tapAt = 0;              // when Start was tapped (for start-up timing)
+let firstResultLogged = false;
 let liveSession = 0;
 
 const recognizer = new Recognizer({
   cfg, log,
   onResults(results, session) {
+    if (!firstResultLogged) {
+      firstResultLogged = true;
+      stats.firstText = Math.round(performance.now() - tapAt);
+      log(`⏱ tap → first text ${stats.firstText}ms`);
+    }
     if (session !== liveSession) { liveSession = session; chunker.reset(); stats.sessions++; }
     chunker.update(results, performance.now());
     setInterim(chunker.pending);
@@ -157,6 +164,10 @@ const recognizer = new Recognizer({
     setInterim('');
   },
   onState(state, msg) {
+    if (state === 'listening' && tapAt && !stats.listening) {
+      stats.listening = Math.round(performance.now() - tapAt);
+      log(`⏱ tap → listening ${stats.listening}ms`);
+    }
     $('dot').className = `dot ${state}`;
     $('status').textContent = msg || {
       listening: 'Listening', restarting: 'Restarting…', paused: 'Paused (speaking)',
@@ -210,8 +221,15 @@ $('startBtn').onclick = () => {
     return;
   }
   // Everything below runs synchronously inside the tap, as iOS requires.
-  if (cfg.speak) speaker.unlock();
+  // Recognition first: if TTS grabs the audio session first, iOS can delay the mic.
+  tapAt = performance.now();
+  firstResultLogged = false;
+  stats.listening = 0;
+  stats.firstText = 0;
+  $('dot').className = 'dot restarting';
+  $('status').textContent = 'Starting…';
   recognizer.start();
+  if (cfg.speak) speaker.unlock();
   setRunning(true);
   lockScreen();
   translator?.warm();
