@@ -39,35 +39,32 @@ You need a computer with **Node.js 18+**, plus free accounts at **Cloudflare** a
 2. Sign up. DeepL asks for a credit card to verify your identity. The Free plan isn't charged, and it stops at 500,000 characters a month instead of billing you.
 3. Open **Account → API Keys** (<https://www.deepl.com/your-account/keys>) and copy the key. Free keys end in `:fx`.
 
-### B. Deploy the site (Cloudflare Pages, recommended)
+### B. Deploy the site (GitHub Pages via Actions)
 
-You need the site's URL before you deploy the Worker, so do this first.
+The site deploys automatically. `.github/workflows/pages.yml` publishes the `web/` folder to GitHub Pages on every push that changes `web/`, and you can also run it by hand from the **Actions** tab.
+
+- Site: **https://net13200.github.io/SugiTalk/**
+- Origin (used by the Worker): `https://net13200.github.io`
+
+If the workflow fails with a Pages error, open the repo's **Settings → Pages** and set **Source: GitHub Actions**.
+
+<details><summary>Alternative: Cloudflare Pages</summary>
 
 ```bash
-cd SugiTalk
-npx wrangler login                       # opens a browser and logs in to Cloudflare
+npx wrangler login
 npx wrangler pages project create sugitalk --production-branch main
 npx wrangler pages deploy web --project-name sugitalk --branch main
 ```
-
-Your site is now at `https://sugitalk.pages.dev`, or whatever name Cloudflare assigns. That's your **origin**. Run the last command again whenever you change files in `web/`.
-
-<details><summary>Alternative: GitHub Pages</summary>
-
-GitHub Pages only works on a public repo unless you have a paid GitHub plan. The included workflow `.github/workflows/pages.yml` publishes the `web/` folder.
-
-1. Repo → **Settings → Pages → Source: GitHub Actions**.
-2. Merge to `main`, or run the workflow by hand.
-3. The site is at `https://<user>.github.io/<repo>/`. Its origin is `https://<user>.github.io`, without the path.
+Then use `https://sugitalk.pages.dev` as the origin in step C.
 </details>
 
 ### C. Deploy the translation Worker
 
-1. Edit `worker/wrangler.toml` and set `ALLOWED_ORIGINS` to your site's origin from step B, for example:
+1. `worker/wrangler.toml` already allows the site's origin:
    ```toml
-   ALLOWED_ORIGINS = "https://sugitalk.pages.dev,http://localhost:8000"
+   ALLOWED_ORIGINS = "https://net13200.github.io,http://localhost:8000"
    ```
-   Use the scheme and host only, with no trailing slash. Keep `http://localhost:8000` if you want to test on your computer.
+   It's the scheme and host only, with no path. If you host the site somewhere else, change it.
 2. Deploy it and store the key as a secret. The key is never written to a file:
    ```bash
    cd worker
@@ -77,7 +74,7 @@ GitHub Pages only works on a public repo unless you have a paid GitHub plan. The
 3. Check it:
    ```bash
    curl -s -X POST https://sugitalk-translate.<you>.workers.dev/translate \
-     -H 'Origin: https://sugitalk.pages.dev' -H 'Content-Type: application/json' \
+     -H 'Origin: https://net13200.github.io' -H 'Content-Type: application/json' \
      -d '{"text":"駅に行ったけど","context":""}'
    # → {"text":"I went to the station, but","ms":180,"provider":"deepl"}
    ```
@@ -87,7 +84,7 @@ GitHub Pages only works on a public repo unless you have a paid GitHub plan. The
 On the phone, open ⚙︎ and paste the Worker URL into **Translation endpoint**. You can also open the site once with it in the address:
 
 ```
-https://sugitalk.pages.dev/?endpoint=https://sugitalk-translate.<you>.workers.dev
+https://net13200.github.io/SugiTalk/?endpoint=https://sugitalk-translate.<you>.workers.dev
 ```
 
 The app saves it in localStorage. To make it the default for everyone who opens the site, set `endpoint` in `web/js/config.js` and redeploy.

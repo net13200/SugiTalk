@@ -1,9 +1,10 @@
-# Optional: publish web/ to GitHub Pages (Settings → Pages → Source: GitHub Actions).
+# Publishes web/ to GitHub Pages → https://net13200.github.io/SugiTalk/
+# (Settings → Pages → Source: GitHub Actions)
 name: Deploy to GitHub Pages
 on:
   push:
-    branches: [main]
-    paths: ['web/**']
+    branches: [main, claude/japanese-english-translator-ihos2b]
+    paths: ['web/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
